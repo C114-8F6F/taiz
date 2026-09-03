@@ -24,12 +24,14 @@ const pool = new Pool({
     }
 });
 
-// اختبار الاتصال وتأسيس الجداول
+// إنشاء الجداول بشكل متسلسل ومستقل لتجنب أخطاء المفتاح الخارجي (Foreign Key)
 async function initDb() {
+    let client;
     try {
-        const client = await pool.connect();
+        client = await pool.connect();
         console.log("✅ تم الاتصال بقاعدة البيانات بنجاح!");
         
+        // 1. إنشاء جدول المستخدمين أولاً
         await client.query(`
             CREATE TABLE IF NOT EXISTS users (
                 id SERIAL PRIMARY KEY,
@@ -42,10 +44,13 @@ async function initDb() {
                 last_ad_watch TIMESTAMP,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
+        `);
 
+        // 2. إنشاء جدول السحوبات ثانياً
+        await client.query(`
             CREATE TABLE IF NOT EXISTS withdrawals (
                 id SERIAL PRIMARY KEY,
-                user_id INT REFERENCES users(id),
+                user_id INT REFERENCES users(id) ON DELETE CASCADE,
                 amount NUMERIC(10, 2) NOT NULL,
                 payout_method VARCHAR(50) NOT NULL,
                 account_details TEXT NOT NULL,
@@ -53,10 +58,12 @@ async function initDb() {
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
         `);
-        console.log("✅ تم إنشاء وتأكيد الجداول بنجاح!");
-        client.release();
+
+        console.log("✅ تم إنشاء وتأكيد جميع الجداول بنجاح!");
     } catch (err) {
-        console.error("❌ خطأ في الاتصال بقاعدة البيانات:", err.message);
+        console.error("❌ خطأ في تهيئة الجداول:", err.message);
+    } finally {
+        if (client) client.release();
     }
 }
 
@@ -91,7 +98,7 @@ app.post('/api/users/register', async (req, res) => {
     }
 });
 
-// 3. مشاهدة الإعلانات
+// 3. مشاهدة الإعلانات وتجميع النقاط (مهلة 15 دقيقة)
 app.post('/api/ads/watch', async (req, res) => {
     const { user_id } = req.body;
 
