@@ -3,367 +3,263 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تطبيق شحن الباقات</title>
+    <title>تطبيق الأرباح والباقات المتكامل</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         :root {
-            --primary-color: #4f46e5;
-            --bg-color: #0f172a;
-            --card-bg: #1e293b;
-            --text-color: #f8fafc;
-            --text-secondary: #94a3b8;
-            --accent-green: #22c55e;
+            --bg-main: #0b0f19;
+            --card-bg: #151c2c;
+            --primary: #6366f1;
+            --accent-green: #10b981;
+            --accent-gold: #f59e0b;
+            --text-main: #f3f4f6;
+            --text-sub: #9ca3af;
+            --border-color: #1f293d;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+        body { background-color: var(--bg-main); color: var(--text-main); padding-bottom: 75px; }
+
+        /* شاشات الدخول والتوثيق */
+        .overlay-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-main); z-index: 1000; display: flex;
+            justify-content: center; align-items: center; padding: 20px; overflow-y: auto;
+        }
+        .form-card {
+            background: var(--card-bg); border: 1px solid var(--border-color);
+            padding: 25px; border-radius: 16px; width: 100%; max-width: 400px;
+        }
+        .input-box { margin-bottom: 12px; text-align: right; }
+        .input-box label { display: block; font-size: 13px; color: var(--text-sub); margin-bottom: 5px; }
+        .input-box input, .input-box select {
+            width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color);
+            background: #0b0f19; color: #fff; outline: none;
         }
 
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            padding-bottom: 70px;
+        /* الهيدر */
+        .header {
+            background: var(--card-bg); padding: 15px 20px; display: flex;
+            justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color);
         }
+        .user-tag { display: flex; align-items: center; gap: 10px; }
+        .avatar { width: 38px; height: 38px; border-radius: 50%; background: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: bold; }
 
-        /* شاشة تسجيل الدخول */
-        #login-screen {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: var(--bg-color);
-            z-index: 1000;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
+        /* الصفحات */
+        .page { display: none; padding: 15px; }
+        .page.active { display: block; }
 
-        .login-card {
-            background: var(--card-bg);
-            padding: 25px;
-            border-radius: 16px;
-            width: 100%;
-            max-width: 350px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-            text-align: center;
-        }
+        /* البطاقات العامة */
+        .card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 14px; padding: 15px; margin-bottom: 12px; }
+        .balance-card { background: linear-gradient(135deg, #4f46e5, #06b6d4); color: white; text-align: center; padding: 20px; border-radius: 16px; margin-bottom: 15px; }
 
-        .input-group {
-            margin-bottom: 15px;
-            text-align: right;
-        }
-
-        .input-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-size: 14px;
-            color: var(--text-secondary);
-        }
-
-        .input-group input {
-            width: 100%;
-            padding: 12px;
-            border-radius: 8px;
-            border: 1px solid #334155;
-            background: #0f172a;
-            color: #fff;
-            outline: none;
-        }
-
-        /* الهيدر العلوي */
-        .app-header {
-            background: var(--card-bg);
-            padding: 15px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #334155;
-        }
-
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .user-avatar {
-            width: 40px; height: 40px;
-            border-radius: 50%;
-            background: var(--primary-color);
-            display: flex; justify-content: center; align-items: center;
-            font-weight: bold;
-        }
-
-        /* محتوى الأقسام */
-        .page-section {
-            display: none;
-            padding: 20px;
-        }
-
-        .page-section.active {
-            display: block;
-        }
-
-        /* بطاقة الرصيد */
-        .balance-card {
-            background: linear-gradient(135deg, #4f46e5, #7c3aed);
-            border-radius: 16px;
-            padding: 20px;
-            text-align: center;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 15px rgba(79, 70, 229, 0.4);
-        }
-
-        .balance-amount {
-            font-size: 32px;
-            font-weight: bold;
-            margin: 10px 0;
-        }
-
-        /* القوائم والبطاقات */
-        .section-title {
-            margin: 15px 0 10px 0;
-            font-size: 18px;
-            color: var(--text-color);
-        }
-
-        .item-card {
-            background: var(--card-bg);
-            border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border: 1px solid #334155;
-        }
-
-        .btn-action {
-            background: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .btn { background: var(--primary); color: white; border: none; padding: 10px 15px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; text-align: center; }
         .btn-green { background: var(--accent-green); }
+        .btn-gold { background: var(--accent-gold); color: #000; }
+        .btn-outline { background: transparent; border: 1px solid var(--primary); color: var(--primary); }
 
         /* شريط التنقل السفلي */
         .bottom-nav {
-            position: fixed;
-            bottom: 0; left: 0; width: 100%;
-            background: var(--card-bg);
-            display: flex;
-            justify-content: space-around;
-            padding: 10px 0;
-            border-top: 1px solid #334155;
+            position: fixed; bottom: 0; left: 0; width: 100%; background: var(--card-bg);
+            display: flex; justify-content: space-around; padding: 10px 0; border-top: 1px solid var(--border-color);
         }
+        .nav-item { color: var(--text-sub); display: flex; flex-direction: column; align-items: center; font-size: 11px; gap: 3px; cursor: pointer; }
+        .nav-item.active { color: var(--primary); }
 
-        .nav-item {
-            color: var(--text-secondary);
-            text-decoration: none;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            font-size: 12px;
-            gap: 4px;
-            cursor: pointer;
-        }
-
-        .nav-item.active {
-            color: var(--primary-color);
-        }
+        /* التنازلي والمتصدرين */
+        .timer-box { background: #0b0f19; padding: 10px; border-radius: 10px; text-align: center; font-weight: bold; color: var(--accent-gold); }
+        .leader-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid var(--border-color); }
     </style>
 </head>
 <body>
 
-    <!-- شاشة تسجيل الدخول -->
-    <div id="login-screen">
-        <div class="login-card">
-            <h2 style="margin-bottom: 20px;" id="lbl-welcome">تسجيل الدخول</h2>
-            <div class="input-group">
-                <label id="lbl-phone">رقم الهاتف:</label>
-                <input type="tel" id="user-phone" placeholder="770000000">
-            </div>
-            <div class="input-group">
-                <label id="lbl-pass">كلمة المرور:</label>
-                <input type="password" id="user-pass" placeholder="******">
-            </div>
-            <button class="btn-action" style="width: 100%; padding: 12px;" onclick="handleLogin()" id="btn-login">دخول</button>
+    <!-- شاشة التسجيل -->
+    <div id="auth-screen" class="overlay-screen">
+        <div class="form-card">
+            <h2 style="text-align: center; margin-bottom: 15px;">إنشاء حساب جديد</h2>
+            <div class="input-box"><label>الاسم الكامل</label><input type="text" id="reg-name" placeholder="عبدالله محمد"></div>
+            <div class="input-box"><label>رقم الهاتف</label><input type="tel" id="reg-phone" placeholder="770000000"></div>
+            <div class="input-box"><label>البريد الإلكتروني</label><input type="email" id="reg-email" placeholder="user@mail.com"></div>
+            <div class="input-box"><label>كلمة المرور</label><input type="password" id="reg-pass" placeholder="******"></div>
+            <button class="btn btn-green" onclick="register()">تسجيل الحساب</button>
+            <p style="text-align: center; margin-top: 10px; font-size: 12px; color: var(--text-sub);" onclick="toggleAuth('login')">لديك حساب؟ تسجيل الدخول</p>
         </div>
     </div>
 
     <!-- الهيدر العلوي -->
-    <div class="app-header">
-        <div class="user-info">
-            <div class="user-avatar" id="avatar-icon">U</div>
+    <div class="header">
+        <div class="user-tag">
+            <div class="avatar" id="u-avatar">U</div>
             <div>
-                <div style="font-weight: bold;" id="user-display-name">المستخدم</div>
-                <div style="font-size: 12px; color: var(--text-secondary);" id="user-display-phone">770000000</div>
+                <div style="font-size: 14px; font-weight: bold;" id="u-name">المستخدم</div>
+                <div style="font-size: 11px; color: var(--text-sub);" id="u-status">غير موثق ⚠️</div>
             </div>
         </div>
-        <i class="fas fa-bell" style="color: var(--text-secondary); font-size: 20px;"></i>
+        <i class="fas fa-user-shield" style="font-size: 20px; color: var(--accent-gold); cursor: pointer;" onclick="openAdminModal()"></i>
     </div>
 
-    <!-- قسم الرئيسية -->
-    <div id="sec-home" class="page-section active">
+    <!-- الرئيسية -->
+    <div id="p-home" class="page active">
         <div class="balance-card">
-            <span id="lbl-balance-title">رصيدك الحالي</span>
-            <div class="balance-amount"><span id="points-count">0</span> <small style="font-size: 14px;" id="lbl-pts">نقطة</small></div>
-            <span style="font-size: 12px; opacity: 0.8;" id="lbl-sub-balance">اجمع 1000 نقطة للحصول على 1 جيجا</span>
+            <span>الرصيد الإجمالي</span>
+            <h1 style="font-size: 32px; margin: 5px 0;"><span id="pts-val">0</span> <small style="font-size: 14px;">نقطة</small></h1>
+            <small id="curr-conv">تساوي: 0 ريال يمني</small>
         </div>
 
-        <h3 class="section-title" id="lbl-packages">باقات الإنترنت المتاحة</h3>
-        <div class="item-card">
-            <div>
-                <strong id="pkg-1">باقة 500 ميجابايت</strong>
-                <div style="font-size: 12px; color: var(--text-secondary);" id="pkg-1-desc">تطلب 500 نقطة</div>
-            </div>
-            <button class="btn-action btn-green" onclick="redeem(500)" id="btn-redeem-1">شحن</button>
+        <div class="card grid-2">
+            <button class="btn btn-gold" onclick="switchPage('p-trade')"><i class="fas fa-sync"></i> بيع/شراء نقاط</button>
+            <button class="btn btn-outline" onclick="switchPage('p-withdraw')"><i class="fas fa-wallet"></i> سحب أرباح</button>
         </div>
-        <div class="item-card">
-            <div>
-                <strong id="pkg-2">باقة 1 جيجابايت</strong>
-                <div style="font-size: 12px; color: var(--text-secondary);" id="pkg-2-desc">تطلب 1000 نقطة</div>
+
+        <!-- مسابقة الشهر -->
+        <div class="card">
+            <h3 style="color: var(--accent-gold); margin-bottom: 8px;"><i class="fas fa-trophy"></i> المسابقة الشهرية الكبرى</h3>
+            <p style="font-size: 12px; color: var(--text-sub); margin-bottom: 10px;">باقي على سحب الجائزة الكبرى:</p>
+            <div class="timer-box" id="month-timer">15 يوم : 12 ساعة : 45 دقيقة</div>
+            
+            <h4 style="margin-top: 15px; margin-bottom: 8px;">متصدري النقاط هذا الشهر:</h4>
+            <div id="leader-list">
+                <div class="leader-item">
+                    <span>🥇 <strong id="top-1-name">أحمد علي (الفائز الحالي)</strong></span>
+                    <span style="color: var(--accent-green);">125,000 نقطة</span>
+                </div>
+                <div class="leader-item">
+                    <span>🥈 محمد طاهر</span>
+                    <span>98,000 نقطة</span>
+                </div>
             </div>
-            <button class="btn-action btn-green" onclick="redeem(1000)" id="btn-redeem-2">شحن</button>
         </div>
     </div>
 
     <!-- قسم مشاهدة الإعلانات -->
-    <div id="sec-ads" class="page-section">
-        <h3 class="section-title" id="lbl-tasks">المهام والإعلانات</h3>
-        <div class="item-card">
-            <div>
-                <strong id="ad-1">إعلان سريع</strong>
-                <div style="font-size: 12px; color: var(--text-secondary);" id="ad-1-desc">+15 نقطة</div>
-            </div>
-            <button class="btn-action" onclick="watchAd(15)" id="btn-ad-1">مشاهدة</button>
+    <div id="p-ads" class="page">
+        <h3><i class="fas fa-play-circle"></i> مشاهدة الإعلانات والمهام</h3>
+        <p style="font-size: 12px; color: var(--text-sub); margin-bottom: 15px;">شاهد الإعلانات واكسب النقاط مباشرة:</p>
+
+        <div class="card grid-2" style="align-items: center;">
+            <div><strong>إعلان سريع</strong><div style="font-size: 11px; color: var(--accent-green);">+40 نقطة</div></div>
+            <button class="btn" onclick="addPoints(40)">مشاهدة</button>
         </div>
-        <div class="item-card">
-            <div>
-                <strong id="ad-2">فيديو مكافأة</strong>
-                <div style="font-size: 12px; color: var(--text-secondary);" id="ad-2-desc">+30 نقطة</div>
-            </div>
-            <button class="btn-action" onclick="watchAd(30)" id="btn-ad-2">مشاهدة</button>
+        <div class="card grid-2" style="align-items: center;">
+            <div><strong>إعلان فضي</strong><div style="font-size: 11px; color: var(--accent-green);">+60 نقطة</div></div>
+            <button class="btn" onclick="addPoints(60)">مشاهدة</button>
+        </div>
+        <div class="card grid-2" style="align-items: center;">
+            <div><strong>إعلان ذهبي</strong><div style="font-size: 11px; color: var(--accent-green);">+100 نقطة</div></div>
+            <button class="btn btn-gold" onclick="addPoints(100)">مشاهدة</button>
+        </div>
+        <div class="card grid-2" style="align-items: center;">
+            <div><strong>إعلان الماسي 💎</strong><div style="font-size: 11px; color: var(--accent-green);">+150 نقطة</div></div>
+            <button class="btn btn-green" onclick="addPoints(150)">مشاهدة</button>
         </div>
     </div>
 
-    <!-- قسم الإعدادات -->
-    <div id="sec-settings" class="page-section">
-        <h3 class="section-title" id="lbl-settings-title">إعدادات التطبيق</h3>
-        <div class="item-card">
-            <span id="lbl-lang">اللغة / Language</span>
-            <button class="btn-action" onclick="toggleLanguage()" id="btn-lang">English</button>
+    <!-- قسم بيع وشراء النقاط -->
+    <div id="p-trade" class="page">
+        <h3><i class="fas fa-store"></i> متجر النقاط</h3>
+
+        <div class="card">
+            <h4>🔴 بيع النقاط للمتجر</h4>
+            <p style="font-size: 12px; color: var(--text-sub);">سعر الـ 5,000 نقطة = 500 ريال</p>
+            <button class="btn btn-gold" style="margin-top: 10px;" onclick="tradePoints('sell')">بيع 5,000 نقطة (كسب 500 ريال)</button>
         </div>
-        <div class="item-card">
-            <span id="lbl-account-status">حالة الحساب</span>
-            <span style="color: var(--accent-green); font-weight: bold;" id="lbl-active">نشط</span>
+
+        <div class="card">
+            <h4>🟢 شراء نقاط من المتجر</h4>
+            <p style="font-size: 12px; color: var(--text-sub);">سعر الـ 5,000 نقطة = 2,000 ريال</p>
+            <button class="btn btn-green" style="margin-top: 10px;" onclick="tradePoints('buy')">شراء 5,000 نقطة (دفع 2,000 ريال)</button>
         </div>
-        <button class="btn-action" style="background: #ef4444; width: 100%; margin-top: 20px;" onclick="logout()" id="btn-logout">تسجيل الخروج</button>
     </div>
 
-    <!-- شريط التنقل السفلي -->
+    <!-- قسم السحب -->
+    <div id="p-withdraw" class="page">
+        <h3><i class="fas fa-paper-plane"></i> طلب سحب الأرباح</h3>
+        <div class="card">
+            <div class="input-box">
+                <label>اختر العملة</label>
+                <select id="currency-select">
+                    <option>ريال قديم (صنعاء)</option>
+                    <option>ريال جديد (عدن / الجنوب)</option>
+                    <option>ريال سعودي</option>
+                    <option>Binance USDT (عملات رقمية)</option>
+                </select>
+            </div>
+            <div class="input-box"><label>المبلغ / الباقة المطلوب شحنها</label><input type="text" placeholder="مثال: باقة 1 جيجا أو 1000 ريال"></div>
+            <button class="btn btn-green" onclick="alert('تم إرسال طلب السحب للإدارة للمراجعة والموافقة.')">إرسال الطلب</button>
+        </div>
+    </div>
+
+    <!-- لوحة التحكم للإدارة -->
+    <div id="admin-modal" class="overlay-screen" style="display: none;">
+        <div class="form-card">
+            <h3>لوحة تحكم الإدارة 🛡️</h3>
+            <p style="font-size: 12px; color: var(--text-sub); margin-bottom: 15px;">التحكم بالمتصدرين وإظهار الفائز:</p>
+            
+            <div class="input-box">
+                <label>اسم الفائز/المتصدر الأول</label>
+                <input type="text" id="admin-top-name" value="أحمد علي">
+            </div>
+            <button class="btn btn-green" onclick="updateTopWinner()">تحديث الاسم في الواجهة</button>
+            <button class="btn btn-outline" style="margin-top: 10px;" onclick="closeAdminModal()">إغلاق</button>
+        </div>
+    </div>
+
+    <!-- شريط التنقل -->
     <div class="bottom-nav">
-        <div class="nav-item active" onclick="switchTab('sec-home', this)">
-            <i class="fas fa-home" style="font-size: 18px;"></i>
-            <span id="nav-home">الرئيسية</span>
-        </div>
-        <div class="nav-item" onclick="switchTab('sec-ads', this)">
-            <i class="fas fa-play-circle" style="font-size: 18px;"></i>
-            <span id="nav-ads">اكسب</span>
-        </div>
-        <div class="nav-item" onclick="switchTab('sec-settings', this)">
-            <i class="fas fa-cog" style="font-size: 18px;"></i>
-            <span id="nav-settings">الإعدادات</span>
-        </div>
+        <div class="nav-item active" onclick="switchPage('p-home', this)"><i class="fas fa-home"></i>الرئيسية</div>
+        <div class="nav-item" onclick="switchPage('p-ads', this)"><i class="fas fa-play"></i>إعلانات</div>
+        <div class="nav-item" onclick="switchPage('p-trade', this)"><i class="fas fa-exchange-alt"></i>المتجر</div>
+        <div class="nav-item" onclick="switchPage('p-withdraw', this)"><i class="fas fa-wallet"></i>السحب</div>
     </div>
 
     <script>
-        let points = 0;
-        let currentLang = 'ar';
+        let userPoints = 0;
 
-        function handleLogin() {
-            const phone = document.getElementById('user-phone').value;
-            if (phone.length >= 8) {
-                document.getElementById('user-display-phone').innerText = phone;
-                document.getElementById('login-screen').style.display = 'none';
-            } else {
-                alert(currentLang === 'ar' ? 'يرجى إدخال رقم هاتف صحيح' : 'Please enter a valid phone number');
+        function register() {
+            const name = document.getElementById('reg-name').value;
+            if(name) {
+                document.getElementById('u-name').innerText = name;
+                document.getElementById('u-avatar').innerText = name.charAt(0);
+                document.getElementById('auth-screen').style.display = 'none';
             }
         }
 
-        function switchTab(sectionId, element) {
-            document.querySelectorAll('.page-section').forEach(sec => sec.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-            
-            document.getElementById(sectionId).classList.add('active');
-            element.classList.add('active');
+        function switchPage(pageId, element) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+            if(element) element.classList.add('active');
         }
 
-        function watchAd(reward) {
-            points += reward;
-            document.getElementById('points-count').innerText = points;
-            alert(currentLang === 'ar' ? `تمت مشاهدة الإعلان وحصلت على ${reward} نقطة!` : `Ad watched! You got ${reward} points!`);
+        function addPoints(pts) {
+            userPoints += pts;
+            document.getElementById('pts-val').innerText = userPoints;
+            alert(`مبروك! حصلت على ${pts} نقطة.`);
         }
 
-        function redeem(cost) {
-            if (points >= cost) {
-                points -= cost;
-                document.getElementById('points-count').innerText = points;
-                alert(currentLang === 'ar' ? 'تم إرسال طلب الشحن بنجاح!' : 'Recharge request submitted successfully!');
+        function tradePoints(type) {
+            if(type === 'sell') {
+                if(userPoints >= 5000) {
+                    userPoints -= 5000;
+                    document.getElementById('pts-val').innerText = userPoints;
+                    alert('تم بيع 5,000 نقطة بنجاح وخصمها من حسابك!');
+                } else {
+                    alert('رصيدك غير كافٍ. تحتاج إلى 5,000 نقطة للبيع.');
+                }
             } else {
-                alert(currentLang === 'ar' ? `رصيدك غير كافٍ. تحتاج إلى ${cost} نقطة.` : `Insufficient points. You need ${cost} points.`);
+                alert('يرجى التواصل مع الدعم لإتمام عملية الشراء وتحويل الـ 2,000 ريال.');
             }
         }
 
-        function logout() {
-            document.getElementById('login-screen').style.display = 'flex';
-        }
+        function openAdminModal() { document.getElementById('admin-modal').style.display = 'flex'; }
+        function closeAdminModal() { document.getElementById('admin-modal').style.display = 'none'; }
 
-        function toggleLanguage() {
-            if (currentLang === 'ar') {
-                currentLang = 'en';
-                document.documentElement.dir = 'ltr';
-                document.getElementById('btn-lang').innerText = 'العربية';
-                
-                // تحويل النصوص للإنجليزية
-                document.getElementById('lbl-welcome').innerText = 'Sign In';
-                document.getElementById('lbl-phone').innerText = 'Phone Number:';
-                document.getElementById('lbl-pass').innerText = 'Password:';
-                document.getElementById('btn-login').innerText = 'Login';
-                document.getElementById('lbl-balance-title').innerText = 'Current Balance';
-                document.getElementById('lbl-pts').innerText = 'Points';
-                document.getElementById('lbl-packages').innerText = 'Available Data Packages';
-                document.getElementById('lbl-tasks').innerText = 'Tasks & Ads';
-                document.getElementById('lbl-settings-title').innerText = 'App Settings';
-                document.getElementById('nav-home').innerText = 'Home';
-                document.getElementById('nav-ads').innerText = 'Earn';
-                document.getElementById('nav-settings').innerText = 'Settings';
-            } else {
-                currentLang = 'ar';
-                document.documentElement.dir = 'rtl';
-                document.getElementById('btn-lang').innerText = 'English';
-                
-                // تحويل النصوص للعربية
-                document.getElementById('lbl-welcome').innerText = 'تسجيل الدخول';
-                document.getElementById('lbl-phone').innerText = 'رقم الهاتف:';
-                document.getElementById('lbl-pass').innerText = 'كلمة المرور:';
-                document.getElementById('btn-login').innerText = 'دخول';
-                document.getElementById('lbl-balance-title').innerText = 'رصيدك الحالي';
-                document.getElementById('lbl-pts').innerText = 'نقطة';
-                document.getElementById('lbl-packages').innerText = 'باقات الإنترنت المتاحة';
-                document.getElementById('lbl-tasks').innerText = 'المهام والإعلانات';
-                document.getElementById('lbl-settings-title').innerText = 'إعدادات التطبيق';
-                document.getElementById('nav-home').innerText = 'الرئيسية';
-                document.getElementById('nav-ads').innerText = 'اكسب';
-                document.getElementById('nav-settings').innerText = 'الإعدادات';
-            }
+        function updateTopWinner() {
+            const newName = document.getElementById('admin-top-name').value;
+            document.getElementById('top-1-name').innerText = newName + " (الفائز الأول)";
+            closeAdminModal();
+            alert('تم تحديث متصدر القائمة بنجاح!');
         }
     </script>
 </body>
