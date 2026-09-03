@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة إدارة تطبيق حظك اليوم</title>
+    <style>
+        body { font-family: system-ui, sans-serif; background: #121212; color: #fff; margin: 0; padding: 20px; }
+        .container { max-width: 1000px; margin: auto; }
+        h1 { color: #00e676; text-align: center; }
+        .card { background: #1e1e1e; border-radius: 8px; padding: 15px; margin-bottom: 20px; border: 1px solid #333; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 12px; border-bottom: 1px solid #333; text-align: right; }
+        th { background: #2a2a2a; color: #00e676; }
+        button { background: #00e676; border: none; padding: 8px 12px; border-radius: 4px; color: #000; font-weight: bold; cursor: pointer; }
+        button.danger { background: #ff5252; color: #fff; }
+        select { padding: 6px; background: #2a2a2a; color: #fff; border: 1px solid #444; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>لوحة تحكم - حظك اليوم</h1>
+        
+        <div class="card">
+            <h3>إدارة المستخدمين والحسابات</h3>
+            <button onclick="loadUsers()">تحديث قائمة المستخدمين</button>
+            <table>
+                <thead>
+                    <tr>
+                        <th>الاسم</th>
+                        <th>الهاتف</th>
+                        <th>الرصيد</th>
+                        <th>النقاط</th>
+                        <th>الحالة</th>
+                        <th>الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody id="usersTable">
+                    <tr><td colspan="6" style="text-align:center;">اضغط تحديث لجلب البيانات...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'https://taiz-sw3n.onrender.com/api';
+
+        async function loadUsers() {
+            try {
+                const res = await fetch(`${API_URL}/admin/users`);
+                const data = await res.json();
+                const tbody = document.getElementById('usersTable');
+                tbody.innerHTML = '';
+
+                if (data.success && data.users.length > 0) {
+                    data.users.forEach(u => {
+                        tbody.innerHTML += `
+                            <tr>
+                                <td>${u.full_name}</td>
+                                <td>${u.phone_number}</td>
+                                <td>${u.balance_rial} YER</td>
+                                <td>${u.points}</td>
+                                <td><strong>${u.account_status}</strong></td>
+                                <td>
+                                    <select onchange="updateStatus('${u.id}', this.value)">
+                                        <option value="">تغيير الحالة...</option>
+                                        <option value="active">نشط</option>
+                                        <option value="restricted">مقيد</option>
+                                        <option value="frozen">مجمّد</option>
+                                        <option value="banned">محظور</option>
+                                    </select>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">لا يوجد مستخدمين مسجلين بعد.</td></tr>';
+                }
+            } catch (err) {
+                alert('خطأ في جلب البيانات: ' + err.message);
+            }
+        }
+
+        async function updateStatus(userId, status) {
+            if (!status) return;
+            try {
+                const res = await fetch(`${API_URL}/admin/update-status`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_id: userId, account_status: status })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    alert('تم تغيير حالة الحساب بنجاح');
+                    loadUsers();
+                }
+            } catch (err) {
+                alert('فشل التحديث: ' + err.message);
+            }
+        }
+    </script>
+</body>
+</html>
+
