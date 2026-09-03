@@ -15,10 +15,8 @@
         .stat-value { font-size: 1.4rem; font-weight: bold; color: #4ade80; }
         input, select, button { width: 100%; padding: 12px; margin-top: 8px; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: #fff; font-size: 1rem; }
         button { background: #0284c7; border: none; font-weight: bold; cursor: pointer; margin-top: 12px; }
-        button:disabled { background: #475569; cursor: not-allowed; }
         .btn-withdraw { background: #16a34a; }
         .hidden { display: none; }
-        .timer { color: #f43f5e; font-weight: bold; text-align: center; margin-top: 8px; }
     </style>
 </head>
 <body>
@@ -52,7 +50,6 @@
         <!-- مشاهدة الإعلانات -->
         <h3>مشاهدة إعلان وتجميع نقاط</h3>
         <button id="adBtn" onclick="watchAd()">مشاهدة الإعلان (+10 نقاط)</button>
-        <div id="cooldownMsg" class="timer hidden"></div>
 
         <hr style="border-color: #334155; margin: 20px 0;">
 
@@ -71,7 +68,8 @@
 </div>
 
 <script>
-    const API_BASE = 'https://taiz-sw3n.onrender.com/api';
+    // تم تحديث رابط السيرفر المباشر الصحيح
+    const API_BASE = 'https://taiz-pxth.onrender.com/api';
     let currentUser = null;
 
     async function registerUser() {
@@ -162,4 +160,3 @@
 
 </body>
 </html>
-
