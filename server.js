@@ -5,22 +5,32 @@ const cors = require('cors');
 const app = express();
 const port = process.env.PORT || 10000;
 
-// تفعيل CORS للسماح بالاتصال من GitHub Pages
-app.use(cors());
+// تفعيل CORS بالكامل لمنع حظر الطلبات من GitHub Pages
+app.use(cors({
+    origin: '*',
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type']
+}));
+
 app.use(express.json());
 
-// الاتصال بقاعدة بيانات PostgreSQL عبر متغيّر البيئة DATABASE_URL
+// الاتصال المباشر بقاعدة بيانات PostgreSQL على Render
+const connectionString = 'postgresql://taiz_user:vteJXCd86HitZZfbi47f3mATSpzgqm07@dpg-dacrtl9t0dsc73f0924g-a.oregon-postgres.render.com/taiz';
+
 const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
+    connectionString: connectionString,
     ssl: {
         rejectUnauthorized: false
     }
 });
 
-// إنشاء الجداول تلقائياً عند تشغيل السيرفر
+// اختبار الاتصال وتأسيس الجداول
 async function initDb() {
     try {
-        await pool.query(`
+        const client = await pool.connect();
+        console.log("✅ تم الاتصال بقاعدة البيانات بنجاح!");
+        
+        await client.query(`
             CREATE TABLE IF NOT EXISTS users (
                 id SERIAL PRIMARY KEY,
                 full_name VARCHAR(100) NOT NULL,
@@ -43,20 +53,21 @@ async function initDb() {
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
         `);
-        console.log("تم إنشاء وتأكيد جداول قاعدة البيانات بنجاح!");
+        console.log("✅ تم إنشاء وتأكيد الجداول بنجاح!");
+        client.release();
     } catch (err) {
-        console.error("خطأ في تهيئة قاعدة البيانات:", err.message);
+        console.error("❌ خطأ في الاتصال بقاعدة البيانات:", err.message);
     }
 }
 
 initDb();
 
-// 1. الصفحة الرئيسية للتأكد من عمل السيرفر
+// 1. اختبار استجابة السيرفر
 app.get('/', (req, res) => {
-    res.send('الخادم يعمل بنجاح ومربوط بقاعدة البيانات على Render! 🚀');
+    res.json({ status: "online", message: "الخادم يعمل ومربوط بنجاح!" });
 });
 
-// 2. مسار تسجيل الدخول / حساب جديد
+// 2. تسجيل الدخول / حساب جديد
 app.post('/api/users/register', async (req, res) => {
     const { full_name, phone_number, device_id } = req.body;
 
@@ -80,7 +91,7 @@ app.post('/api/users/register', async (req, res) => {
     }
 });
 
-// 3. مسار مشاهدة الإعلانات وتجميع النقاط (مع شرط مهلة 15 دقيقة)
+// 3. مشاهدة الإعلانات
 app.post('/api/ads/watch', async (req, res) => {
     const { user_id } = req.body;
 
@@ -106,24 +117,23 @@ app.post('/api/ads/watch', async (req, res) => {
             }
         }
 
-        // إضافة 10 نقاط وتحديث وقت المشاهدة الأخيرة
         await pool.query(
             'UPDATE users SET points = points + 10, last_ad_watch = $1 WHERE id = $2',
             [now, user_id]
         );
 
-        res.json({ success: true, message: 'تمت إضافة 10 نقاط إلى حسابك بنجاح!' });
+        res.json({ success: true, message: 'تمت إضافة 10 نقاط بنجاح!' });
     } catch (err) {
         res.status(500).json({ success: false, message: err.message });
     }
 });
 
-// 4. مسار طلب سحب الأرباح
+// 4. طلب السحب
 app.post('/api/withdraw', async (req, res) => {
     const { user_id, amount, payout_method, account_details } = req.body;
 
     if (!amount || !payout_method || !account_details) {
-        return res.status(400).json({ success: false, message: 'يرجى إدخال جميع بيانات السحب' });
+        return res.status(400).json({ success: false, message: 'يرجى إدخال جميع البيانات' });
     }
 
     try {
@@ -132,13 +142,13 @@ app.post('/api/withdraw', async (req, res) => {
             [user_id, amount, payout_method, account_details]
         );
 
-        res.json({ success: true, message: 'تم إرسال طلب السحب بنجاح، وسيتم مراجعته من قبل الإدارة.' });
+        res.json({ success: true, message: 'تم إرسال طلب السحب بنجاح.' });
     } catch (err) {
         res.status(500).json({ success: false, message: err.message });
     }
 });
 
-// 5. مسار لوحة التحكم للجلب قائمة المستخدمين
+// 5. جلب المستخدمين للوحة التحكم
 app.get('/api/admin/users', async (req, res) => {
     try {
         const users = await pool.query('SELECT * FROM users ORDER BY id DESC');
@@ -148,7 +158,7 @@ app.get('/api/admin/users', async (req, res) => {
     }
 });
 
-// 6. مسار تعديل حالة حساب المستخدم
+// 6. تحديث حالة الحساب
 app.post('/api/admin/update-status', async (req, res) => {
     const { user_id, account_status } = req.body;
 
@@ -160,7 +170,6 @@ app.post('/api/admin/update-status', async (req, res) => {
     }
 });
 
-// تشغيل السيرفر
 app.listen(port, () => {
-    console.log(`الخادم يعمل بنجاح على المنفذ ${port}`);
+    console.log(`الخادم يعمل على المنفذ ${port}`);
 });
