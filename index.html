@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>شحن باقات إنترنت</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f7fe;
+            text-align: center;
+            padding: 20px;
+            margin: 0;
+        }
+        .card {
+            background: #ffffff;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            max-width: 350px;
+            margin: 30px auto;
+        }
+        h2 { color: #2c3e50; }
+        .points-box {
+            background: #e8f4fd;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #1e88e5;
+            margin: 20px 0;
+        }
+        .btn {
+            background-color: #27ae60;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 12px;
+        }
+        .btn-redeem {
+            background-color: #2980b9;
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>مرحباً بك! 👋</h2>
+    <p>شاهد الإعلانات واجمع النقاط لاستبدالها بباقات إنترنت.</p>
+    
+    <div class="points-box">
+        رصيدك الحالي: <span id="points">0</span> نقطة
+    </div>
+
+    <button class="btn" onclick="watchAd()">مشاهدة إعلان (+10 نقاط)</button>
+    <button class="btn btn-redeem" onclick="redeemPackage()">شحن باقة إنترنت</button>
+</div>
+
+<script>
+    let currentPoints = 0;
+
+    function watchAd() {
+        // سيتم ربط كود شبكة الإعلانات هنا
+        currentPoints += 10;
+        document.getElementById('points').innerText = currentPoints;
+        alert("مبروك! حصلت على 10 نقاط.");
+    }
+
+    function redeemPackage() {
+        if(currentPoints >= 100) {
+            alert("تم إرسال طلب الشحن بنجاح!");
+        } else {
+            alert("رصيدك غير كافٍ. تحتاج إلى 100 نقطة على الأقل.");
+        }
+    }
+</script>
+
+</body>
+</html>
+
